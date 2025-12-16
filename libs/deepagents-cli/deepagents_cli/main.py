@@ -144,8 +144,7 @@ async def simple_cli(
 
     Args:
         backend: Backend for file operations (CompositeBackend)
-        sandbox_type: Type of sandbox being used (e.g., "modal", "runloop", "daytona").
-                     If None, running in local mode.
+        sandbox_type: Type of sandbox being used (e.g., "modal", "runloop", "daytona"). If None, running in local mode.
         sandbox_id: ID of the active sandbox
         setup_script_path: Path to setup script that was run (if any)
         no_splash: If True, skip displaying the startup splash screen
@@ -189,7 +188,7 @@ async def simple_cli(
         )
         console.print()
 
-    console.print("... Ready to code! What would you like to build?", style=COLORS["agent"])
+    console.print("All set! Let's get started...", style=COLORS["agent"])
 
     if sandbox_type:
         working_dir = get_default_working_dir(sandbox_type)
