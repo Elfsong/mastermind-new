@@ -1,13 +1,14 @@
 """Main entry point and CLI loop for deepagents."""
 
-import argparse
-import asyncio
+
 import os
 import sys
+import uuid
+import asyncio
+import argparse
 from pathlib import Path
 
 from deepagents.backends.protocol import SandboxBackendProtocol
-
 from deepagents_cli.agent import create_cli_agent, list_agents, reset_agent
 from deepagents_cli.commands import execute_bash_command, handle_command
 from deepagents_cli.config import (
@@ -300,6 +301,7 @@ async def _run_agent_session(
         tools.append(web_search)
 
     agent, composite_backend = create_cli_agent(
+        name=f"Mastermind-{assistant_id}-{uuid.uuid4()}",
         model=model,
         assistant_id=assistant_id,
         tools=tools,
