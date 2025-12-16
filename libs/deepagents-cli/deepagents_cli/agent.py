@@ -1,6 +1,7 @@
 """Agent management and creation for the CLI."""
 
 import os
+import uuid
 import shutil
 from pathlib import Path
 
@@ -455,6 +456,7 @@ def create_cli_agent(
 
     # Create the agent
     agent = create_deep_agent(
+        name=f"{assistant_id}-{uuid.uuid4()}",
         model=model,
         system_prompt=system_prompt,
         tools=tools,

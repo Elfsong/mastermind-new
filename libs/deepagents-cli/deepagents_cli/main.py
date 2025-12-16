@@ -3,7 +3,6 @@
 
 import os
 import sys
-import uuid
 import asyncio
 import argparse
 from pathlib import Path
@@ -301,7 +300,6 @@ async def _run_agent_session(
         tools.append(web_search)
 
     agent, composite_backend = create_cli_agent(
-        name=f"Mastermind-{assistant_id}-{uuid.uuid4()}",
         model=model,
         assistant_id=assistant_id,
         tools=tools,
