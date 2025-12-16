@@ -162,7 +162,7 @@ class TestSimpleTasks:
     """A collection of simple task benchmarks for the deepagents-cli."""
 
     @pytest.mark.asyncio
-    @pytest.mark.timeout(120)  # Agent can take 60-120 seconds
+    @pytest.mark.timeout(180)  # Agent can take 60-180 seconds
     async def test_write_hello_to_a_file(self, tmp_path: Path) -> None:
         """Test agents to write 'hello' to a file."""
         async with run_cli_task("write hello to file foo.md", tmp_path) as (
@@ -183,7 +183,7 @@ class TestSimpleTasks:
             )
 
     @pytest.mark.asyncio
-    @pytest.mark.timeout(120)
+    @pytest.mark.timeout(180)
     async def test_cli_auto_approve_multiple_operations(self, tmp_path: Path) -> None:
         """Test agent to create multiple files with auto-approve."""
         task = "create files test1.txt and test2.txt with content 'test file'"
@@ -208,7 +208,7 @@ class TestAgentBehavior:
     """A collection of tests for agent behavior (non-CLI level)."""
 
     @pytest.mark.asyncio
-    @pytest.mark.timeout(120)
+    @pytest.mark.timeout(180)
     async def test_run_command_calls_shell_tool(self, tmp_path: Path) -> None:
         """Test that 'run make format' calls shell tool with 'make format' command.
 

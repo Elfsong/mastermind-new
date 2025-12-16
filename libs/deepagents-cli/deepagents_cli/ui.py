@@ -97,7 +97,7 @@ def format_tool_display(tool_name: str, tool_args: dict) -> str:
         # Shell: show the command being executed
         if "command" in tool_args:
             command = str(tool_args["command"])
-            command = truncate_value(command, 120)
+            command = truncate_value(command, 180)
             return f'{tool_name}("{command}")'
 
     elif tool_name == "ls":
