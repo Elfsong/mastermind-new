@@ -596,8 +596,7 @@ async def execute_task(
                             )
 
                             # Restart spinner with context about which tool is executing
-                            elapsed = time.time() - start_time
-                            output_manager.start_spinner(f"[bold {COLORS['thinking']}]Executing {display_str}... ({elapsed:.1f}s)")
+                            output_manager.start_spinner(f"[bold {COLORS['thinking']}]Executing {display_str}...")
 
                     if getattr(message, "chunk_position", None) == "last":
                         output_manager.flush_text_buffer(final=True)
