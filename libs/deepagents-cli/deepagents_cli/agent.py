@@ -21,7 +21,7 @@ from langgraph.pregel import Pregel
 from langgraph.runtime import Runtime
 
 from deepagents_cli.agent_memory import AgentMemoryMiddleware
-from deepagents_cli.config import COLORS, config, console, get_default_coding_instructions, settings
+from deepagents_cli.config import COLORS, config, console, get_default_coding_instructions, get_instructions, settings
 from deepagents_cli.integrations.sandbox_factory import get_default_working_dir
 from deepagents_cli.shell import ShellMiddleware
 from deepagents_cli.skills import SkillsMiddleware
@@ -454,14 +454,14 @@ def create_cli_agent(
         # Full HITL for destructive operations
         interrupt_on = _add_interrupt_on()
 
-    reconnaissance_subagent = {
-        "name": "reconnaissance-agent",
-        "description": "Used to reconnaissance the target",
-        "system_prompt": "You are an expert reconnaissance agent",
+    ctf_subagent = {
+        "name": "ctf-agent",
+        "description": "Used to perform CTF operations",
+        "system_prompt": get_instructions("ctf_agent_prompt.md"),
         "tools": tools,
         "model": "openai:gpt-5.2-2025-12-11",
     }
-    subagents = [reconnaissance_subagent]
+    subagents = [ctf_subagent]
 
     # Create the agent
     agent = create_deep_agent(

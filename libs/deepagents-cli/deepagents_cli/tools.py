@@ -1,7 +1,7 @@
 """Custom tools for the CLI agent."""
 
 from typing import Any, Literal
-
+import subprocess
 import requests
 from markdownify import markdownify
 from tavily import TavilyClient
@@ -181,3 +181,26 @@ def fetch_url(url: str, timeout: int = 30) -> dict[str, Any]:
         }
     except Exception as e:
         return {"error": f"Fetch URL error: {e!s}", "url": url}
+
+def execute_command(command: str, timeout: int = 30, cwd: str = None) -> dict[str, Any]:
+    """Execute a command and return the output.
+
+    Args:
+        command: The command to execute
+        timeout: The timeout in seconds
+        cwd: The current working directory
+    Returns:
+        Dictionary containing the output of the command
+    """
+    try:
+        result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=timeout, cwd=cwd)
+        return {
+            "success": result.returncode == 0,
+            "returncode": result.returncode,
+            "output": result.stdout,
+            "error": result.stderr,
+        }
+    except subprocess.TimeoutExpired:
+        return {"error": f"Command timed out after {timeout} seconds", "command": command}
+    except Exception as e:
+        return {"error": f"Command execution error: {e!s}", "command": command}

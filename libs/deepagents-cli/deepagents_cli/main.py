@@ -25,7 +25,7 @@ from deepagents_cli.integrations.sandbox_factory import (
     get_default_working_dir,
 )
 from deepagents_cli.skills import execute_skills_command, setup_skills_parser
-from deepagents_cli.tools import fetch_url, http_request, web_search
+from deepagents_cli.tools import fetch_url, http_request, web_search, execute_command
 from deepagents_cli.ui import TokenTracker, show_help
 
 
@@ -295,7 +295,7 @@ async def _run_agent_session(
         setup_script_path: Path to setup script that was run (if any)
     """
     # Create agent with conditional tools
-    tools = [http_request, fetch_url]
+    tools = [http_request, fetch_url, execute_command]
     if settings.has_tavily:
         tools.append(web_search)
 

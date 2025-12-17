@@ -352,6 +352,11 @@ def get_default_coding_instructions() -> str:
     default_prompt_path = Path(__file__).parent / "default_agent_prompt.md"
     return default_prompt_path.read_text()
 
+def get_instructions(instruction_path) -> str:
+    """Get the instructions for the agent from a file."""
+    instruction_path = Path(__file__).parent / instruction_path
+    return instruction_path.read_text()
+
 
 def create_model() -> BaseChatModel:
     """Create the appropriate model based on available API keys.
