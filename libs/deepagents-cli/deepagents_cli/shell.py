@@ -6,10 +6,11 @@ import os
 import subprocess
 from typing import Any
 
-from langchain.agents.middleware.types import AgentMiddleware, AgentState
+
 from langchain.tools import ToolRuntime, tool
 from langchain_core.messages import ToolMessage
 from langchain_core.tools.base import ToolException
+from langchain.agents.middleware.types import AgentMiddleware, AgentState
 
 
 class ShellMiddleware(AgentMiddleware[AgentState, Any]):
