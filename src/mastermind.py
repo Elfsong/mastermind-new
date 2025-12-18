@@ -1,0 +1,125 @@
+# coding: utf-8
+import os
+import uuid
+import readline
+import subprocess
+from pathlib import Path
+from typing import List, Dict, Any, Literal
+
+from rich.live import Live
+from rich.theme import Theme
+from rich.panel import Panel
+from rich.console import Console
+from rich.markdown import Markdown
+
+from dotenv import load_dotenv
+from tavily import TavilyClient
+from langchain.tools import tool
+from langchain_openai import ChatOpenAI
+from langchain.agents import create_agent
+from langgraph.checkpoint.memory import InMemorySaver
+from langchain.agents.middleware import SummarizationMiddleware
+from langchain.messages import HumanMessage, ToolMessage, AIMessage, AIMessageChunk
+
+
+HISTORY_FILE = os.path.expanduser("~/.agent_history")
+if os.path.exists(HISTORY_FILE):
+    readline.read_history_file(HISTORY_FILE)
+
+# 自定义主题：定义不同角色的颜色
+custom_theme = Theme({
+    "info": "dim cyan",
+    "warning": "magenta",
+    "danger": "bold red",
+    "tool": "bold green",
+    "ai": "bold blue",
+})
+
+console = Console(theme=custom_theme)
+load_dotenv()
+
+@tool
+def web_search(query: str, max_results: int = 5, topic: Literal["general", "news", "finance"] = "general", include_raw_content: bool = False) -> str:
+    """Search for information."""
+    search_client = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
+    return search_client.search(query, max_results=max_results, topic=topic, include_raw_content=include_raw_content)
+
+@tool
+def shell_command(command: str, timeout: int = 30, cwd: str = None) -> Dict[str, Any]:
+    """Execute a shell command."""
+    try:
+        result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=timeout, cwd=cwd)
+        return {"stdout": result.stdout, "stderr": result.stderr, "returncode": result.returncode}
+    except Exception as e:
+        return {"stdout": "", "stderr": str(e), "returncode": -1}
+
+def get_system_prompt(agent_name: str):
+    return Path(f"prompts/{agent_name}.md").read_text()
+
+
+backend = ChatOpenAI(model="gpt-4o-mini", streaming=True)
+mastermind = create_agent(
+    backend, 
+    system_prompt=get_system_prompt("test"), 
+    tools=[web_search, shell_command],
+    middleware=[SummarizationMiddleware(model="gpt-4o-mini", trigger=("fraction", 0.85), keep=("messages", 6))],
+    checkpointer=InMemorySaver(),
+)
+
+def run_interactive_agent():
+    config = {"configurable": {"thread_id": str(uuid.uuid4())}}
+    console.print(Panel.fit("[bold cyan]Mastermind Agent[/bold cyan]\n[dim]Auto-execution mode enabled[/dim]", border_style="cyan"))
+
+    while True:
+        try:
+            console.print()
+            safe_prompt = "\001\033[1;32m\002➜\001\033[0m\002 "
+            user_input = input(safe_prompt)
+            readline.write_history_file(HISTORY_FILE)
+            user_input = user_input.strip()
+        except EOFError:
+            console.print("\n[yellow]Interrupted by user[/yellow]")
+            break
+
+        if user_input.lower() in ["exit", "quit"]: break
+
+        input_data = {"messages": [HumanMessage(content=user_input)]}
+        full_msg_content = ""
+
+        last_ai_message = None
+        with console.status("[bold blue]Thinking...", spinner="dots"):
+            with Live(vertical_overflow="visible", auto_refresh=True) as live:
+                for mode, data in mastermind.stream(input_data, config, stream_mode=["messages", "updates"]):
+                    
+                    if mode == "messages":
+                        msg, _ = data
+                        if isinstance(msg, AIMessageChunk) and msg.content:
+                            full_msg_content += msg.content
+                            live.update(Panel(Markdown(full_msg_content), title="[ai]AI Assistant[/ai]", border_style="blue", expand=False))
+
+                    elif mode == "updates":
+                        for node_name, output in data.items():
+                            if not output or "messages" not in output: continue
+                            last_node_msg = output["messages"][-1]
+                            
+                            if isinstance(last_node_msg, AIMessage):
+                                last_ai_message = last_node_msg
+                            
+                            if isinstance(last_node_msg, ToolMessage):
+                                args = "N/A"
+                                if last_ai_message and hasattr(last_ai_message, "tool_calls"):
+                                    for tool_call in last_ai_message.tool_calls:
+                                        if tool_call["id"] == last_node_msg.tool_call_id:
+                                            args = tool_call["args"]
+                                            break
+                                
+                                console.print(Panel(
+                                    f"[bold yellow]Tool:[/bold yellow] {last_node_msg.name}\n"
+                                    f"[bold yellow]Args:[/bold yellow] {args}\n"
+                                    f"[bold yellow]Result:[/bold yellow] [dim]{str(last_node_msg.content)[:300]}...[/dim]", 
+                                    title="Action", 
+                                    border_style="yellow"
+                                ))
+
+if __name__ == "__main__":
+    run_interactive_agent()
