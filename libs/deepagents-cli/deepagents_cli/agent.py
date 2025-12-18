@@ -459,7 +459,9 @@ def create_cli_agent(
         "description": "Used to perform CTF operations",
         "system_prompt": get_instructions("ctf_agent_prompt.md"),
         "tools": tools,
-        "model": "openai:gpt-5.2-2025-12-11",
+        # "model": "openai:gpt-5.2-2025-12-11",
+        # "model": "anthropic:claude-sonnet-4-5-20250929",
+        "model": "google:gemini-3-pro-preview",
     }
     subagents = [ctf_subagent]
 
