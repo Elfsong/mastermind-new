@@ -212,7 +212,7 @@ class TaskOutputManager:
         self.pending_text = ""
         self.spinner_active = False
         self.has_responded = False
-        self.status = console.status(f"[bold {COLORS['thinking']}]Agent is thinking...", spinner="dots")
+        self.status = console.status(f"[bold {COLORS['thinking']}]Mastermind is thinking...", spinner="dots")
         self.is_reasoning = False
 
     def stream_reasoning(self, text: str) -> None:
@@ -446,7 +446,7 @@ async def execute_task(
 
                         # Reset spinner message after tool completes
                         if output_manager.spinner_active:
-                            output_manager.start_spinner(f"[bold {COLORS['thinking']}]Agent is thinking...")
+                            output_manager.start_spinner(f"[bold {COLORS['thinking']}]Mastermind is thinking...")
 
                         if tool_name == "shell" and tool_status != "success":
                             output_manager.flush_text_buffer(final=True)
