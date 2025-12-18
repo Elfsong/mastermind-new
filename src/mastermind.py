@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 from tavily import TavilyClient
 from langchain.tools import tool
 from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.agents import create_agent
 from langgraph.checkpoint.memory import InMemorySaver
 from langchain.agents.middleware import SummarizationMiddleware
@@ -57,12 +58,13 @@ def get_system_prompt(agent_name: str):
     return Path(f"prompts/{agent_name}.md").read_text()
 
 
-backend = ChatOpenAI(model="gpt-4o-mini", streaming=True)
+# backend = ChatOpenAI(model="gpt-4o-mini", streaming=True)
+backend = ChatGoogleGenerativeAI(model="gemini-3-pro-preview", streaming=True)
 mastermind = create_agent(
     backend, 
-    system_prompt=get_system_prompt("test"), 
+    system_prompt=get_system_prompt("mastermind"), 
     tools=[web_search, shell_command],
-    middleware=[SummarizationMiddleware(model="gpt-4o-mini", trigger=("fraction", 0.85), keep=("messages", 6))],
+    middleware=[SummarizationMiddleware(model=backend, trigger=("fraction", 0.85), keep=("messages", 6))],
     checkpointer=InMemorySaver(),
 )
 
