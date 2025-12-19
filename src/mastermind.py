@@ -183,6 +183,8 @@ def run_interactive_agent(agent, config):
                                     title="Action", 
                                     border_style="yellow"
                                 ))
+                                full_msg_content = ""
+                                live.update(Spinner("dots", text="Next step...\n", style="bold blue"))
         except KeyboardInterrupt:
             console.print("\n[bold yellow]Task Cancelled[/bold yellow]")
             continue
