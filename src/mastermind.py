@@ -82,6 +82,7 @@ def run_interactive_agent(agent, config):
     )
 
     while True:
+        # Get user input
         try:
             console.print()
             safe_prompt = "\001\033[1;32m\002➜\001\033[0m\002 "
@@ -91,8 +92,35 @@ def run_interactive_agent(agent, config):
         except EOFError:
             console.print("\n[yellow]Interrupted by user[/yellow]")
             break
-
+        
+        # Exit commands
         if user_input.lower() in ["exit", "quit"]: break
+
+        # Shell commands
+        if user_input.startswith("!"):
+            cmd = user_input[1:].strip()
+            if not cmd:
+                continue
+                
+            # Special handling for cd command
+            if cmd.startswith("cd "):
+                try:
+                    target_dir = cmd[3:].strip()
+                    # Handle ~ and other path expansion
+                    target_dir = os.path.expanduser(target_dir)
+                    os.chdir(target_dir)
+                    console.print(f"[dim cyan]Changed directory to: {os.getcwd()}[/dim cyan]")
+                except Exception as e:
+                    console.print(f"[bold red]Error changing directory:[/bold red] {e}")
+            else:
+                try:
+                    # Execute other Shell commands directly to terminal, support pipes and wildcards
+                    subprocess.run(cmd, shell=True)
+                except Exception as e:
+                    console.print(f"[bold red]Execution Error:[/bold red] {e}")
+            
+            # Skip this loop, don't send to AI
+            continue
 
         input_data = {"messages": [HumanMessage(content=user_input)]}
         full_msg_content = ""
