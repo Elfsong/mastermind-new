@@ -29,7 +29,16 @@ HISTORY_FILE = os.path.expanduser("~/.agent_history")
 if os.path.exists(HISTORY_FILE):
     readline.read_history_file(HISTORY_FILE)
 
-# 自定义主题：定义不同角色的颜色
+DEEP_AGENTS_ASCII = r"""[bold green]
+  __  __           _            __  __ _           _ 
+ |  \/  |         | |          |  \/  (_)         | |
+ | \  / | __ _ ___| |_ ___ _ __| \  / |_ _ __   __| |
+ | |\/| |/ _` / __| __/ _ \ '__| |\/| | | '_ \ / _` |
+ | |  | | (_| \__ \ ||  __/ |  | |  | | | | | | (_| |
+ |_|  |_|\__,_|___/\__\___|_|  |_|  |_|_|_| |_|\__,_|
+[/bold green]"""
+
+# Custom theme: define colors for different roles
 custom_theme = Theme({
     "info": "dim cyan",
     "warning": "magenta",
@@ -60,22 +69,16 @@ def get_system_prompt(agent_name: str):
     prompt_path = Path(__file__).parent / "prompts" / f"{agent_name}.md"
     return prompt_path.read_text()
 
-
-backend = ChatOpenAI(model="gpt-4o-mini", streaming=True)
-# backend = ChatGoogleGenerativeAI(model="gemini-3-pro-preview", streaming=True)
-
-mastermind = create_agent(
-    model=backend, 
-    name="mastermind",
-    system_prompt=get_system_prompt("mastermind"), 
-    tools=[web_search, shell_command],
-    middleware=[SummarizationMiddleware(model=backend, trigger=("fraction", 0.85), keep=("messages", 6))],
-    # checkpointer=InMemorySaver(),
-)
-
-def run_interactive_agent():
-    config = {"configurable": {"thread_id": str(uuid.uuid4())}}
-    console.print(Panel.fit("[bold cyan]Mastermind Agent[/bold cyan]\n[dim]Auto-execution mode enabled[/dim]", border_style="cyan"))
+def run_interactive_agent(agent, config):
+    system_info = "[dim][+] Offensive Attack Mode Enabled[/dim]\n[dim][+] Unattended Mode Enabled[/dim]\n[bold yellow][+] Command+C to Exit[/bold yellow]"
+    console.print(
+        Panel(
+            DEEP_AGENTS_ASCII + "\n" + system_info, 
+            title="[bold cyan]Mastermind[/bold cyan]", 
+            border_style="cyan", 
+            expand=False
+        )
+    )
 
     while True:
         try:
@@ -94,14 +97,12 @@ def run_interactive_agent():
         full_msg_content = ""
         last_ai_message = None
 
-        # --- 修改开始 ---
-        # 1. 创建一个初始的 "Thinking..." 状态
-        #    这样在 Agent 进行搜索或思考还未输出 Token 时，用户能看到反馈
+        # Initial display
         initial_display = Spinner("dots", text="Thinking...", style="bold blue")
 
-        # 2. 移除外层的 console.status，只使用 Live
+        # Live display
         with Live(initial_display, vertical_overflow="visible", refresh_per_second=10) as live:
-            for mode, data in mastermind.stream(input_data, config, stream_mode=["messages", "updates"]):
+            for mode, data in agent.stream(input_data, config, stream_mode=["messages", "updates"]):
                 
                 if mode == "messages":
                     msg, _ = data
@@ -116,12 +117,12 @@ def run_interactive_agent():
                         elif isinstance(chunk_content, str):
                             full_msg_content += chunk_content
 
-                        # 3. 收到内容后，更新 Live 的显示对象为 Markdown
+                        # Update Live display to Markdown
                         live.update(Panel(Markdown(full_msg_content), title="[ai]Mastermind[/ai]", border_style="blue", expand=False))
 
                 elif mode == "updates":
-                    # Tool 输出的处理逻辑保持不变
-                    # 注意：这里直接 console.print 会在 Live 组件上方打印，这是 Rich 允许的
+                    # Tool output processing logic remains the same
+                    # Note: Direct console.print here will print above the Live component, which is allowed by Rich
                     for node_name, output in data.items():
                         if not output or "messages" not in output: continue
                         last_node_msg = output["messages"][-1]
@@ -149,4 +150,16 @@ def run_interactive_agent():
                             ))
 
 if __name__ == "__main__":
-    run_interactive_agent()
+    backend = ChatOpenAI(model="gpt-4o-mini", streaming=True)
+    # backend = ChatGoogleGenerativeAI(model="gemini-3-pro-preview", streaming=True)
+
+    mastermind = create_agent(
+        model=backend, 
+        name="mastermind",
+        system_prompt=get_system_prompt("mastermind"), 
+        tools=[web_search, shell_command],
+        middleware=[SummarizationMiddleware(model=backend, trigger=("fraction", 0.85), keep=("messages", 6))],
+    )
+
+    config = {"configurable": {"thread_id": str(uuid.uuid4())}}
+    run_interactive_agent(mastermind, config)
