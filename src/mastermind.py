@@ -40,7 +40,7 @@ DEEP_AGENTS_ASCII = r"""[bold green]
 [/bold green]"""
 
 # Custom theme: define colors for different roles
-custom_theme = Theme({
+CUSTOM_THEME = Theme({
     "info": "dim cyan",
     "warning": "magenta",
     "danger": "bold red",
@@ -48,7 +48,7 @@ custom_theme = Theme({
     "ai": "bold blue",
 })
 
-console = Console(theme=custom_theme)
+
 load_dotenv()
 
 @tool
@@ -71,6 +71,7 @@ def get_system_prompt(agent_name: str):
     return prompt_path.read_text()
 
 def run_interactive_agent(agent, config):
+    console = Console(theme=CUSTOM_THEME)
     console.clear()
     system_info = "[dim][+] Offensive Attack Mode Enabled[/dim]\n[dim][+] Unattended Mode Enabled[/dim]\n[bold yellow][+] Command+C to Exit[/bold yellow]"
     console.print(
@@ -134,11 +135,11 @@ def run_interactive_agent(agent, config):
         last_ai_message = None
 
         # Initial display
-        initial_display = Spinner("dots", text="Thinking...", style="bold blue")
+        initial_display = Spinner("dots", text="Thinking...\n", style="bold blue")
 
         # Live display
         try:
-            with Live(initial_display, vertical_overflow="visible", refresh_per_second=10) as live:
+            with Live(initial_display, console=console, vertical_overflow="visible", refresh_per_second=10) as live:
                 for mode, data in agent.stream(input_data, config, stream_mode=["messages", "updates"]):
                     
                     if mode == "messages":
@@ -175,9 +176,6 @@ def run_interactive_agent(agent, config):
                                             args = tool_call["args"]
                                             break
                                 
-                                live.update(Text(""))
-                                live.refresh()
-
                                 console.print(Panel(
                                     f"[bold yellow]Tool:[/bold yellow] {last_node_msg.name}\n"
                                     f"[bold yellow]Args:[/bold yellow] {args}\n"
