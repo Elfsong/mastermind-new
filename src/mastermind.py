@@ -1,6 +1,7 @@
 # coding: utf-8
 import os
 import uuid
+import argparse
 import readline
 import subprocess
 from pathlib import Path
@@ -18,9 +19,9 @@ from dotenv import load_dotenv
 from tavily import TavilyClient
 from langchain.tools import tool
 from langchain_openai import ChatOpenAI
+from langchain_anthropic import ChatAnthropic
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.agents import create_agent
-from langgraph.checkpoint.memory import InMemorySaver
 from langchain.agents.middleware import SummarizationMiddleware
 from langchain.messages import HumanMessage, ToolMessage, AIMessage, AIMessageChunk
 
@@ -150,8 +151,19 @@ def run_interactive_agent(agent, config):
                             ))
 
 if __name__ == "__main__":
-    backend = ChatOpenAI(model="gpt-4o-mini", streaming=True)
-    # backend = ChatGoogleGenerativeAI(model="gemini-3-pro-preview", streaming=True)
+    # args: --model gpt-4o-mini or --model gemini-3-pro-preview
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model", type=str, default="openai", choices=["openai", "google", "anthropic"])
+    args = parser.parse_args()
+
+    if args.model == "openai":
+        backend = ChatOpenAI(model="gpt-4o-mini", streaming=True)
+    elif args.model == "google":
+        backend = ChatGoogleGenerativeAI(model="gemini-3-pro-preview", streaming=True)
+    elif args.model == "anthropic":
+        backend = ChatAnthropic(model="claude-sonnet-4-5-20250929", streaming=True)
+    else:
+        raise ValueError(f"Invalid model: {args.model}")
 
     mastermind = create_agent(
         model=backend, 
