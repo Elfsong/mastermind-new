@@ -1,1 +1,3 @@
 src/mastermind/__pycache__/
+.langgraph_api/
+.env
