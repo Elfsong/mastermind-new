@@ -7,10 +7,6 @@ This benchmark is used to test the performance of the mastermind agent on the HT
 1. **API Token**: Obtain your HackTheBox API Token from your account settings (Profile > Settings > Create App Token).
 2. **Environment Variable**: Add your token to the `.env` file in the project root:
 
-```env
-HTB_TOKEN=eyJ...
-```
-
 ## Usage
 
 The `htb.py` script provides a Python interface to the HackTheBox API via the `HTBEnv` class.
